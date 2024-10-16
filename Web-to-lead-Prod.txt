@@ -1,0 +1,279 @@
+Web-to-lead
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário Web-to-Lead</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ccc;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        form input[type="text"],
+        form select,
+        form textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        form label {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        form input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        form input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .dual-list {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .select {
+            height: 200px;
+            margin-bottom: 1rem;
+        }
+
+        .buttons {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .buttons button {
+            margin: 5px 0;
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .required-text{
+            color: red;
+        }
+
+        b{
+            color: red;
+        }
+    </style>
+    <script>
+        function getEstados() {
+            let url = 'https://servicodados.ibge.gov.br/api/v1/localidades/estados'
+            var list = document.getElementById('estados');
+
+            fetch(url).then(response => response.json())
+                .then((json) => {
+                    for (let i = 0; i < json.length; i++) {
+                        var novaOption = document.createElement("option");
+                        novaOption.text = json[i].nome;
+                        novaOption.value = json[i].nome;
+                        novaOption.setAttribute("data-id", json[i].id)
+                        list.options.add(novaOption);
+                    }
+                })
+                .catch((erro) => {
+                    let div = document.getElementById("erro");
+                    div.innerHTML = 'Página inexistente';
+                });
+        }
+
+        document.addEventListener("DOMContentLoaded", (event) => {
+            var select = document.getElementById('estados');
+            var cidadeSelect = document.getElementById('cidades');
+            cidadeSelect.disabled = true;
+
+            select.addEventListener('change', function() {
+                var option = this.selectedOptions[0];
+                var texto = option.textContent;
+
+                cidadeSelect.innerHTML = '<option value=" ">--</option>';
+                cidadeSelect.disabled = true;
+
+                var estadoId = option.getAttribute('data-id');
+
+                if (texto != '--') {
+                    cidadeSelect.disabled = false;
+                    let url = `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoId}/municipios`;
+                    var list = document.getElementById('cidades');
+
+                    fetch(url).then(response => response.json())
+                        .then((json) => {
+                            for (let i = 0; i < json.length; i++) {
+                                var novaOption = document.createElement("option");
+                                novaOption.text = json[i].nome;
+                                novaOption.value = json[i].nome;
+                                list.options.add(novaOption);
+                            }
+                        })
+                        .catch((erro) => {
+                            let div = document.getElementById("erro");
+                            div.innerHTML = 'Página inexistente';
+                        });
+                }
+            });
+        });
+    </script>
+</head>
+<body onload="getEstados()">
+
+    <form action="https://webto.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8&orgId=00D2E000000pEtk" method="POST">
+        <p class="required-text">*Campos obrigatórios</p>
+        <input type="hidden" name="oid" value="00D2E000000pEtk">
+        <input type="hidden" name="retURL" value="http://">
+
+        <!-- Campos de input -->
+        <label for="first_name">Primeiro Nome</label>
+        <input  id="first_name" maxlength="40" name="first_name" size="20" type="text" required/><br>
+
+        <label for="last_name">Sobrenome</label>
+        <input  id="last_name" maxlength="80" name="last_name" size="20" type="text" required/><br>
+
+        <label for="email">Email</label>
+        <input  id="email" maxlength="80" name="email" size="20" type="text" required/><br>
+
+        <label for="phone">Telefone</label>
+        <input  id="phone" maxlength="40" name="phone" size="20" type="text" required/><br>
+
+        <label for="company">Empresa</label>
+        <input  id="company" maxlength="40" name="company" size="20" type="text" required/><br>
+
+        <label for="state"><b>*</b>Estado</label>
+        <select name="state" id="estados" required>
+            <option value="">--</option>
+        </select>
+
+        <label for="city">Cidade</label>
+        <select name="city" id="cidades">
+            <option value="">--</option>
+        </select>
+        
+        <label for="lead_source" class="hidden">Origem do lead</label>
+        <select id="lead_source" name="lead_source" class="hidden">
+            <option value="Website" selected>Website</option>
+            <!-- Outros valores podem ser adicionados aqui -->
+        </select>
+
+        <label for="00N2E00000Hnt0o">CNPJ/CPF</label>
+        <input id="00N2E00000Hnt0o" maxlength="20" name="00N2E00000Hnt0o" size="20" type="text" />
+
+        <!-- Dual picklist de Produtos -->
+        <label for="produtos">Produto</label>
+        <div class="dual-list">
+            <select id="availableProducts" multiple class="select">
+                value="Complementos Técnicos">Complementos Técnicos</option>
+                <option value="Embalagem">Embalagem</option>
+                <option value="Filmes">Filmes</option>
+                <option value="Geocomposto">Geocomposto</option>
+                <option value="Geomembranas">Geomembranas</option>
+                <option value="Geossintéticos">Geossintéticos</option>
+                <option value="Lonas">Lonas</option>
+                <option value="Mangueiras de Irrigação">Mangueiras de Irrigação</option>
+                <option value="Mulching">Mulching</option>
+                <option value="Reservatório Pronto">Reservatório Pronto</option>
+                <option value="Rservatórios">Reservatórios</option>
+                <option value="Silagem">Silagem</option>
+                <option value="SiloBolsa">SiloBolsa</option>
+                <option value="Tecdren">Tecdren</option>
+                <option value="Tela Grama Armada">Tela Grama Armada</option>
+                <option value="Telas">Telas</option>
+            </select>
+
+            <div class="buttons">
+                <button type="button" id="addProduct">→</button>
+                <button type="button" id="removeProduct">←</button>
+            </div>
+    
+            <select id="selectedProducts" multiple name="00N2E00000GdUNn" class="select">
+                <!-- Opções selecionadas serão movidas aqui -->
+            </select>
+        </div>
+    
+        <script>
+            const availableProducts = document.getElementById('availableProducts');
+            const selectedProducts = document.getElementById('selectedProducts');
+            const addProductButton = document.getElementById('addProduct');
+            const removeProductButton = document.getElementById('removeProduct');
+    
+            
+            // Função para mover opções selecionadas para a lista de produtos selecionados
+            addProductButton.addEventListener('click', () => {
+                const selectedOptions = [...availableProducts.selectedOptions];
+                selectedOptions.forEach(option => {
+                    selectedProducts.appendChild(option);
+                    option.selected = true; // Seleciona o item movido
+                    
+                });
+               
+            });
+    
+            // Função para mover opções selecionadas de volta para a lista de produtos disponíveis
+            removeProductButton.addEventListener('click', () => {
+                const selectedOptions = [...selectedProducts.selectedOptions];
+                selectedOptions.forEach(option => {
+                    availableProducts.appendChild(option);
+                    option.selected = false; // Desmarca o item movido
+                   
+                });
+                
+            });
+        </script>
+
+        <!-- Quantidade de produto -->
+        <label for="00N6R00000J898O">Quantidade de produto</label>
+        <select id="00N6R00000J898O" name="00N6R00000J898O" title="Quantidade de produto">
+            <option value="">-- Nenhum --</option><option value="Até 500m²">Até 500m²</option>
+            <option value="de 500m² até 1000m²">de 500m² até 1000m²</option>
+            <option value="de 1000m² até 2500m²">de 1000m² até 2500m²</option>
+            <option value="de 2500m² a 5000m²">de 2500m² a 5000m²</option>
+            <option value="Acima de 5000m²">Acima de 5000m²</option>
+        </select>
+
+        <!-- Campo de descrição -->
+        <label for="description">Descrição</label>
+        <textarea name="description" id="description"></textarea>
+
+        <input type="submit" value="Enviar">
+    </form>
+
+    <div id="erro"></div>
+
+</body>
+</html>
